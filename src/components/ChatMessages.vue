@@ -6,14 +6,8 @@
         <p class="text-gray-500 mb-6">Start a conversation with your LLM</p>
         
         <div class="max-w-2xl mx-auto">
-          <div class="flex items-center justify-between mb-3">
+          <div class="mb-3">
             <h3 class="text-gray-700 text-sm font-medium">Try these conversation starters:</h3>
-            <router-link 
-              to="/roles" 
-              class="text-xs text-blue-600 hover:text-blue-800 underline"
-            >
-              Edit Roles
-            </router-link>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <button 
@@ -78,17 +72,12 @@ const conversationStarters = ref([])
 
 const loadConversationStarters = async () => {
   try {
-    // Always load from JSON file to get latest updates
+    // Always load from JSON file only
     const module = await import('../data/conversationStarters.json')
     conversationStarters.value = module.default
-    // Update localStorage with latest data
-    localStorage.setItem('conversationStarters', JSON.stringify(conversationStarters.value))
   } catch (error) {
-    // Fallback to localStorage if JSON import fails
-    const savedStarters = localStorage.getItem('conversationStarters')
-    if (savedStarters) {
-      conversationStarters.value = JSON.parse(savedStarters)
-    }
+    console.error('Failed to load conversation starters:', error)
+    conversationStarters.value = []
   }
 }
 

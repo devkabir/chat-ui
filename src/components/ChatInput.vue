@@ -103,184 +103,194 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted, watch, nextTick, defineProps, defineEmits } from 'vue'
 import { fetchAvailableModels } from '../services/models.js'
 
-export default {
-  name: 'ChatInput',
-  props: {
-    isLoading: {
-      type: Boolean,
-      default: false
-    },
-    currentModel: {
-      type: String,
-      default: 'google/gemma-3-12b'
-    },
-    temperature: {
-      type: Number,
-      default: 0.7
-    },
-    messages: {
-      type: Array,
-      default: () => []
-    }
+const props = defineProps({
+  isLoading: {
+    type: Boolean,
+    default: false
   },
-  emits: ['send-message', 'model-change', 'temperature-change', 'clear-chat', 'streaming-change', 'stop-request'],
-  data() {
-    return {
-      currentMessage: '',
-      selectedModel: this.currentModel,
-      selectedTemperature: this.temperature,
-      useStreaming: true,
-      availableModels: [],
-      modelsLoading: true,
-      autoTemperature: false,
-      messageCount: 0,
-      messageHistory: [],
-      historyIndex: -1
-    }
+  currentModel: {
+    type: String,
+    default: 'google/gemma-3-12b'
   },
-  async mounted() {
-    await this.loadModels()
+  temperature: {
+    type: Number,
+    default: 0.7
   },
-  watch: {
-    currentModel(newValue) {
-      this.selectedModel = newValue
-    },
-    temperature(newValue) {
-      this.selectedTemperature = newValue
-    }
-  },
-  methods: {
-    sendMessage() {
-      if (!this.currentMessage.trim() || this.isLoading) return
-      
-      // Add to history
-      this.addToHistory(this.currentMessage)
-      
-      this.$emit('send-message', this.currentMessage)
-      this.currentMessage = ''
-      this.resetTextareaHeight()
-      
-      // Auto-adjust temperature based on message count
-      if (this.autoTemperature) {
-        this.messageCount++
-        this.adjustAutoTemperature()
-      }
-    },
-    
-    handleKeydown(event) {
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault()
-        this.sendMessage()
-      } else if (event.key === 'ArrowUp') {
-        event.preventDefault()
-        this.navigateHistory('up')
-      } else if (event.key === 'ArrowDown') {
-        event.preventDefault()
-        this.navigateHistory('down')
-      }
-    },
-    
-    adjustTextareaHeight() {
-      const textarea = this.$refs.messageInput
-      textarea.style.height = 'auto'
-      textarea.style.height = Math.min(textarea.scrollHeight, 128) + 'px'
-    },
-    
-    resetTextareaHeight() {
-      const textarea = this.$refs.messageInput
-      textarea.style.height = 'auto'
-    },
-    
-    stopRequest() {
-      this.$emit('stop-request')
-    },
-    
-    async loadModels() {
-      try {
-        this.modelsLoading = true
-        this.availableModels = await fetchAvailableModels()
-        
-        // If current model is not in the list, select the first available model
-        if (this.availableModels.length > 0) {
-          const currentModelExists = this.availableModels.some(model => model.id === this.selectedModel)
-          if (!currentModelExists) {
-            this.selectedModel = this.availableModels[0].id
-            this.$emit('model-change', this.selectedModel)
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load models:', error)
-      } finally {
-        this.modelsLoading = false
-      }
-    },
-    
-    formatModelName(name) {
-      // Clean up model names for display
-      return name
-        .replace(/^.*\//, '') // Remove namespace prefix
-        .replace(/[-_]/g, ' ') // Replace hyphens and underscores with spaces
-        .replace(/\b\w/g, l => l.toUpperCase()) // Capitalize first letter of each word
-    },
-    
-    toggleAutoTemperature() {
-      if (this.autoTemperature) {
-        this.messageCount = 0
-        this.adjustAutoTemperature()
-      }
-    },
-    
-    adjustAutoTemperature() {
-      // Auto-adjust temperature based on conversation progress
-      // Start high for creativity, decrease for more focused responses
-      const baseTemp = 0.8
-      const decayRate = 0.05
-      const minTemp = 0.3
-      
-      const newTemp = Math.max(minTemp, baseTemp - (this.messageCount * decayRate))
-      this.selectedTemperature = Math.round(newTemp * 10) / 10
-      this.$emit('temperature-change', this.selectedTemperature)
-    },
-    
-    addToHistory(message) {
-      // Add message to history, avoid duplicates
-      if (this.messageHistory[this.messageHistory.length - 1] !== message) {
-        this.messageHistory.push(message)
-        // Keep only last 50 messages
-        if (this.messageHistory.length > 50) {
-          this.messageHistory.shift()
-        }
-      }
-      this.historyIndex = -1
-    },
-    
-    navigateHistory(direction) {
-      if (this.messageHistory.length === 0) return
-      
-      if (direction === 'up') {
-        if (this.historyIndex < this.messageHistory.length - 1) {
-          this.historyIndex++
-          this.currentMessage = this.messageHistory[this.messageHistory.length - 1 - this.historyIndex]
-        }
-      } else if (direction === 'down') {
-        if (this.historyIndex > 0) {
-          this.historyIndex--
-          this.currentMessage = this.messageHistory[this.messageHistory.length - 1 - this.historyIndex]
-        } else if (this.historyIndex === 0) {
-          this.historyIndex = -1
-          this.currentMessage = ''
-        }
-      }
-      
-      this.$nextTick(() => {
-        this.adjustTextareaHeight()
-      })
-    }
+  messages: {
+    type: Array,
+    default: () => []
+  }
+})
+
+const emit = defineEmits(['send-message', 'model-change', 'temperature-change', 'clear-chat', 'streaming-change', 'stop-request'])
+
+const messageInput = ref(null)
+const currentMessage = ref('')
+const selectedModel = ref(props.currentModel)
+const selectedTemperature = ref(props.temperature)
+const useStreaming = ref(true)
+const availableModels = ref([])
+const modelsLoading = ref(true)
+const autoTemperature = ref(false)
+const messageCount = ref(0)
+const messageHistory = ref([])
+const historyIndex = ref(-1)
+
+const sendMessage = () => {
+  if (!currentMessage.value.trim() || props.isLoading) return
+  
+  // Add to history
+  addToHistory(currentMessage.value)
+  
+  emit('send-message', currentMessage.value)
+  currentMessage.value = ''
+  resetTextareaHeight()
+  
+  // Auto-adjust temperature based on message count
+  if (autoTemperature.value) {
+    messageCount.value++
+    adjustAutoTemperature()
   }
 }
+
+const handleKeydown = (event) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    sendMessage()
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    navigateHistory('up')
+  } else if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    navigateHistory('down')
+  }
+}
+
+const adjustTextareaHeight = () => {
+  const textarea = messageInput.value
+  textarea.style.height = 'auto'
+  textarea.style.height = Math.min(textarea.scrollHeight, 128) + 'px'
+}
+
+const resetTextareaHeight = () => {
+  const textarea = messageInput.value
+  textarea.style.height = 'auto'
+}
+
+const stopRequest = () => {
+  emit('stop-request')
+}
+
+const loadModels = async () => {
+  try {
+    modelsLoading.value = true
+    availableModels.value = await fetchAvailableModels()
+    
+    // If current model is not in the list, select the first available model
+    if (availableModels.value.length > 0) {
+      const currentModelExists = availableModels.value.some(model => model.id === selectedModel.value)
+      if (!currentModelExists) {
+        selectedModel.value = availableModels.value[0].id
+        emit('model-change', selectedModel.value)
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load models:', error)
+  } finally {
+    modelsLoading.value = false
+  }
+}
+
+const formatModelName = (name) => {
+  // Clean up model names for display
+  return name
+    .replace(/^.*\//, '') // Remove namespace prefix
+    .replace(/[-_]/g, ' ') // Replace hyphens and underscores with spaces
+    .replace(/\b\w/g, l => l.toUpperCase()) // Capitalize first letter of each word
+}
+
+const toggleAutoTemperature = () => {
+  if (autoTemperature.value) {
+    messageCount.value = 0
+    adjustAutoTemperature()
+  }
+}
+
+const adjustAutoTemperature = () => {
+  // Auto-adjust temperature based on conversation progress
+  // Start high for creativity, decrease for more focused responses
+  const baseTemp = 0.8
+  const decayRate = 0.05
+  const minTemp = 0.3
+  
+  const newTemp = Math.max(minTemp, baseTemp - (messageCount.value * decayRate))
+  selectedTemperature.value = Math.round(newTemp * 10) / 10
+  emit('temperature-change', selectedTemperature.value)
+}
+
+const addToHistory = (message) => {
+  // Add message to history, avoid duplicates
+  if (messageHistory.value[messageHistory.value.length - 1] !== message) {
+    messageHistory.value.push(message)
+    // Keep only last 50 messages
+    if (messageHistory.value.length > 50) {
+      messageHistory.value.shift()
+    }
+  }
+  historyIndex.value = -1
+}
+
+const navigateHistory = (direction) => {
+  if (messageHistory.value.length === 0) return
+  
+  if (direction === 'up') {
+    if (historyIndex.value < messageHistory.value.length - 1) {
+      historyIndex.value++
+      currentMessage.value = messageHistory.value[messageHistory.value.length - 1 - historyIndex.value]
+    }
+  } else if (direction === 'down') {
+    if (historyIndex.value > 0) {
+      historyIndex.value--
+      currentMessage.value = messageHistory.value[messageHistory.value.length - 1 - historyIndex.value]
+    } else if (historyIndex.value === 0) {
+      historyIndex.value = -1
+      currentMessage.value = ''
+    }
+  }
+  
+  nextTick(() => {
+    adjustTextareaHeight()
+  })
+}
+
+// Watchers
+watch(() => props.currentModel, (newValue) => {
+  selectedModel.value = newValue
+})
+
+watch(() => props.temperature, (newValue) => {
+  selectedTemperature.value = newValue
+})
+
+watch(selectedModel, (newValue) => {
+  emit('model-change', newValue)
+})
+
+watch(selectedTemperature, (newValue) => {
+  emit('temperature-change', newValue)
+})
+
+watch(useStreaming, (newValue) => {
+  emit('streaming-change', newValue)
+})
+
+onMounted(async () => {
+  await loadModels()
+})
 </script>
 
 <style scoped>

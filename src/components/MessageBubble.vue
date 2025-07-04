@@ -45,32 +45,28 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, defineProps } from 'vue'
 import { processMarkdown } from '../utils/markdown.js'
 
-export default {
-  name: 'MessageBubble',
-  props: {
-    message: {
-      type: Object,
-      required: true
-    }
-  },
-  computed: {
-    processedContent() {
-      if (this.message.role === 'user') {
-        return this.message.content
-      }
-      return processMarkdown(this.message.content)
-    }
-  },
-  methods: {
-    formatTime(timestamp) {
-      return new Date(timestamp).toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      })
-    }
+const props = defineProps({
+  message: {
+    type: Object,
+    required: true
   }
+})
+
+const processedContent = computed(() => {
+  if (props.message.role === 'user') {
+    return props.message.content
+  }
+  return processMarkdown(props.message.content)
+})
+
+const formatTime = (timestamp) => {
+  return new Date(timestamp).toLocaleTimeString([], { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  })
 }
 </script>

@@ -13,27 +13,25 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ChatHeader',
-  props: {
-    currentModel: {
-      type: String,
-      default: 'google/gemma-3-12b'
-    },
-    isConnected: {
-      type: Boolean,
-      default: true
-    },
-    messageCount: {
-      type: Number,
-      default: 0
-    }
+<script setup>
+import { computed, defineProps } from 'vue'
+
+const props = defineProps({
+  currentModel: {
+    type: String,
+    default: 'google/gemma-3-12b'
   },
-  computed: {
-    statusText() {
-      return `${this.currentModel} • ${this.messageCount} messages`
-    }
+  isConnected: {
+    type: Boolean,
+    default: true
+  },
+  messageCount: {
+    type: Number,
+    default: 0
   }
-}
+})
+
+const statusText = computed(() => {
+  return `${props.currentModel} • ${props.messageCount} messages`
+})
 </script>

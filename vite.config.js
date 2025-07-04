@@ -4,7 +4,10 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   server: {
-    port: 3000
+    host: '0.0.0.0', // Expose to network
+    port: 3000,
+    strictPort: true, // Exit if port is in use
+    open: true // Don't auto-open browser
   },
   build: {
     assetsDir: '.',

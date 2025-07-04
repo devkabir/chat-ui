@@ -1,4 +1,5 @@
-const MODELS_API_URL = 'http://192.168.0.138:1234/v1/models'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:1234'
+const MODELS_API_URL = `${API_BASE_URL}/v1/models`
 
 export async function fetchAvailableModels() {
   try {

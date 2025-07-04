@@ -1,4 +1,5 @@
-const API_URL = 'http://192.168.0.138:1234/v1/chat/completions'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:1234'
+const API_URL = `${API_BASE_URL}/v1/chat/completions`
 
 export async function sendMessage(messages, model = 'google/gemma-3-12b', temperature = 0.7, abortSignal = null) {
   try {
