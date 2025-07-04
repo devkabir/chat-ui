@@ -5,12 +5,6 @@
         :current-model="currentModel"
         :is-connected="isConnected"
         :message-count="messages.length"
-        @toggle-web-search="toggleWebSearch"
-      />
-      
-      <WebSearchInput 
-        v-if="showWebSearch"
-        @search="handleWebSearch"
       />
       
       <ChatMessages 
@@ -39,17 +33,14 @@
 import ChatHeader from '../components/ChatHeader.vue'
 import ChatMessages from '../components/ChatMessages.vue'
 import ChatInput from '../components/ChatInput.vue'
-import WebSearchInput from '../components/WebSearchInput.vue'
 import { sendMessage as sendMessageAPI, sendMessageStream } from '../services/llm.js'
-import { searchWebMock } from '../services/webSearch.js'
 
 export default {
   name: 'ChatView',
   components: {
     ChatHeader,
     ChatMessages,
-    ChatInput,
-    WebSearchInput
+    ChatInput
   },
   data() {
     return {
@@ -60,8 +51,7 @@ export default {
       temperature: 0.7,
       useStreaming: true,
       messageId: 0,
-      abortController: null,
-      showWebSearch: false
+      abortController: null
     }
   },
   methods: {
@@ -202,77 +192,6 @@ export default {
       this.messageId = 0
       if (this.abortController) {
         this.abortController.abort()
-        this.isLoading = false
-      }
-    },
-
-    toggleWebSearch() {
-      this.showWebSearch = !this.showWebSearch
-    },
-
-    async handleWebSearch(searchData) {
-      try {
-        // Show search query in chat
-        const searchMessage = {
-          id: this.messageId++,
-          role: 'user',
-          content: `🌐 Search: ${searchData.query}`,
-          timestamp: new Date().toISOString(),
-          searchQuery: searchData.query
-        }
-        this.messages.push(searchMessage)
-
-        // Show loading state
-        this.isLoading = true
-
-        // Perform web search
-        const searchResults = await searchWebMock(searchData.query, 5)
-
-        if (searchResults.error) {
-          throw new Error(searchResults.error)
-        }
-
-        // Format search results for display
-        let resultsContent = `Here are the web search results for "${searchData.query}":\n\n`
-        
-        searchResults.results.forEach((result, index) => {
-          resultsContent += `**${index + 1}. ${result.title}**\n`
-          resultsContent += `${result.snippet}\n`
-          if (result.url) {
-            resultsContent += `🔗 [${result.source}](${result.url})\n`
-          }
-          resultsContent += '\n'
-        })
-
-        // Add search results as a system message
-        const resultsMessage = {
-          id: this.messageId++,
-          role: 'assistant',
-          content: resultsContent,
-          timestamp: new Date().toISOString(),
-          isWebSearchResult: true,
-          searchQuery: searchData.query,
-          searchResults: searchResults.results
-        }
-        this.messages.push(resultsMessage)
-
-        // Auto-send to AI for analysis
-        const analysisPrompt = `Based on the web search results above for "${searchData.query}", please provide a comprehensive summary and analysis. Include key insights, relevant information, and answer any questions the user might have about this topic.`
-        
-        // Send analysis request to AI
-        await this.sendMessage(analysisPrompt)
-
-      } catch (error) {
-        console.error('Web search error:', error)
-        
-        const errorMessage = {
-          id: this.messageId++,
-          role: 'assistant',
-          content: `Sorry, I encountered an error while searching for "${searchData.query}". Please try again or rephrase your search query.`,
-          timestamp: new Date().toISOString()
-        }
-        this.messages.push(errorMessage)
-      } finally {
         this.isLoading = false
       }
     }

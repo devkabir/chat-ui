@@ -56,70 +56,64 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted, nextTick, defineProps, defineEmits, watch } from 'vue'
 import MessageBubble from './MessageBubble.vue'
 
-export default {
-  name: 'ChatMessages',
-  components: {
-    MessageBubble
+const props = defineProps({
+  messages: {
+    type: Array,
+    required: true
   },
-  emits: ['send-starter'],
-  props: {
-    messages: {
-      type: Array,
-      required: true
-    },
-    isLoading: {
-      type: Boolean,
-      default: false
-    }
-  },
-  watch: {
-    messages: {
-      handler() {
-        this.$nextTick(() => {
-          this.scrollToBottom()
-        })
-      },
-      deep: true
-    },
-    isLoading() {
-      this.$nextTick(() => {
-        this.scrollToBottom()
-      })
-    }
-  },
-  data() {
-    return {
-      conversationStarters: []
-    }
-  },
-  mounted() {
-    this.loadConversationStarters()
-  },
-  methods: {
-    loadConversationStarters() {
-      // Always load from JSON file to get latest updates
-      import('../data/conversationStarters.json').then(module => {
-        this.conversationStarters = module.default
-        // Update localStorage with latest data
-        localStorage.setItem('conversationStarters', JSON.stringify(this.conversationStarters))
-      }).catch(() => {
-        // Fallback to localStorage if JSON import fails
-        const savedStarters = localStorage.getItem('conversationStarters')
-        if (savedStarters) {
-          this.conversationStarters = JSON.parse(savedStarters)
-        }
-      })
-    },
-    
-    scrollToBottom() {
-      const container = this.$refs.messagesContainer
-      if (container) {
-        container.scrollTop = container.scrollHeight
-      }
+  isLoading: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const emit = defineEmits(['send-starter'])
+
+const messagesContainer = ref(null)
+const conversationStarters = ref([])
+
+const loadConversationStarters = async () => {
+  try {
+    // Always load from JSON file to get latest updates
+    const module = await import('../data/conversationStarters.json')
+    conversationStarters.value = module.default
+    // Update localStorage with latest data
+    localStorage.setItem('conversationStarters', JSON.stringify(conversationStarters.value))
+  } catch (error) {
+    // Fallback to localStorage if JSON import fails
+    const savedStarters = localStorage.getItem('conversationStarters')
+    if (savedStarters) {
+      conversationStarters.value = JSON.parse(savedStarters)
     }
   }
 }
+
+const scrollToBottom = () => {
+  const container = messagesContainer.value
+  if (container) {
+    container.scrollTop = container.scrollHeight
+  }
+}
+
+// Watch for message changes
+watch(() => props.messages, () => {
+  nextTick(() => {
+    scrollToBottom()
+  })
+}, { deep: true })
+
+// Watch for loading changes
+watch(() => props.isLoading, () => {
+  nextTick(() => {
+    scrollToBottom()
+  })
+})
+
+onMounted(() => {
+  loadConversationStarters()
+})
 </script>
