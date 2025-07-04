@@ -1,3 +1,87 @@
+/* Import highlight.js theme */
+@import 'highlight.js/styles/github-dark.css';
+
+/* Import KaTeX CSS */
+@import 'katex/dist/katex.min.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom styles for markdown content */
+.markdown-content {
+  @apply text-gray-800 leading-relaxed;
+}
+
+.markdown-content h1 {
+  @apply text-2xl font-bold mb-4 mt-6 text-gray-900;
+}
+
+.markdown-content h2 {
+  @apply text-xl font-bold mb-3 mt-5 text-gray-900;
+}
+
+.markdown-content h3 {
+  @apply text-lg font-bold mb-2 mt-4 text-gray-900;
+}
+
+.markdown-content h4 {
+  @apply text-base font-bold mb-2 mt-3 text-gray-900;
+}
+
+.markdown-content p {
+  @apply mb-4 text-gray-700;
+}
+
+.markdown-content a {
+  @apply text-blue-600 hover:text-blue-800 underline;
+}
+
+.markdown-content strong {
+  @apply font-semibold text-gray-900;
+}
+
+.markdown-content em {
+  @apply italic;
+}
+
+.markdown-content hr {
+  @apply my-6 border-gray-300;
+}
+
+/* Code block styling */
+.code-block-container {
+  @apply my-4 rounded-lg overflow-hidden shadow-sm;
+}
+
+.code-block-container pre {
+  @apply m-0 text-sm;
+}
+
+.code-block-container code {
+  @apply font-mono;
+}
+
+/* Math equation styling */
+.katex-display {
+  @apply my-4 text-center;
+}
+
+.katex {
+  @apply text-gray-800;
+}
+
+/* Table responsiveness */
+.table-container {
+  @apply shadow-sm rounded-lg;
+}
+
+/* Ensure proper spacing in lists */
+.markdown-content ul,
+.markdown-content ol {
+  @apply my-4;
+}
+
+.markdown-content li {
+  @apply mb-1;
+}

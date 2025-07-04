@@ -1,0 +1,41 @@
+<template>
+  <div class="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-semibold text-gray-900">Chat with LLM</h1>
+        <p class="text-sm text-gray-500 mt-1">{{ statusText }}</p>
+      </div>
+      <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-2">
+          <div :class="['w-2 h-2 rounded-full', isConnected ? 'bg-green-400' : 'bg-red-400']"></div>
+          <span class="text-sm text-gray-600">{{ isConnected ? 'Connected' : 'Disconnected' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'ChatHeader',
+  props: {
+    currentModel: {
+      type: String,
+      default: 'google/gemma-3-12b'
+    },
+    isConnected: {
+      type: Boolean,
+      default: true
+    },
+    messageCount: {
+      type: Number,
+      default: 0
+    }
+  },
+  computed: {
+    statusText() {
+      return `${this.currentModel} • ${this.messageCount} messages`
+    }
+  }
+}
+</script>

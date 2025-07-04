@@ -1,0 +1,41 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+        
+    - name: Install dependencies
+      run: bun install
+      
+    - name: Build application
+      run: bun run build
+      
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: chat-ui-build-${{ github.sha }}
+        path: dist/
+        retention-days: 7
+        
+    - name: Check build size
+      run: |
+        echo "📦 Build completed successfully!"
+        echo "📊 Build size:"
+        du -sh dist/
+        echo "📋 Build contents:"
+        ls -la dist/

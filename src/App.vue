@@ -1,149 +1,169 @@
 <template>
-  <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-    <div class="w-full max-w-4xl h-[90vh] bg-white rounded-lg shadow-lg flex flex-col">
-      <div class="p-6 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">Chat with LLM</h1>
-        <div class="text-sm text-gray-600">Model: {{ currentModel }}</div>
-      </div>
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="h-screen flex flex-col w-full bg-white shadow-2xl">
+      <ChatHeader 
+        :current-model="currentModel"
+        :is-connected="isConnected"
+        :message-count="messages.length"
+      />
       
-      <div class="flex-1 overflow-y-auto p-6 space-y-4" ref="messagesContainer">
-        <div
-          v-for="message in messages"
-          :key="message.id"
-          :class="[
-            'flex',
-            message.role === 'user' ? 'justify-end' : 'justify-start'
-          ]"
-        >
-          <div
-            :class="[
-              'max-w-xs lg:max-w-md px-4 py-2 rounded-lg',
-              message.role === 'user' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-200 text-gray-800'
-            ]"
-          >
-            {{ message.content }}
-          </div>
-        </div>
-        <div v-if="isLoading" class="flex justify-start">
-          <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-gray-200 text-gray-800 animate-pulse">
-            Thinking...
-          </div>
-        </div>
-      </div>
+      <ChatMessages 
+        :messages="messages"
+        :is-loading="isLoading"
+      />
       
-      <div class="p-6 border-t border-gray-200 bg-white rounded-b-lg">
-        <div class="flex gap-2 mb-4">
-          <input
-            v-model="currentMessage"
-            @keyup.enter="sendMessage"
-            @keyup.shift.enter="sendMessage"
-            placeholder="Type your message..."
-            :disabled="isLoading"
-            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <button 
-            @click="sendMessage" 
-            :disabled="isLoading || !currentMessage.trim()"
-            class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-          >
-            Send
-          </button>
-        </div>
-        <div class="flex flex-wrap gap-4 items-center text-sm">
-          <label class="flex items-center gap-2">
-            <span class="text-gray-700">Model:</span>
-            <select v-model="currentModel" class="px-2 py-1 border border-gray-300 rounded">
-              <option value="google/gemma-3-12b">Gemma 3 12B</option>
-            </select>
-          </label>
-          <label class="flex items-center gap-2">
-            <span class="text-gray-700">Temperature:</span>
-            <input v-model.number="temperature" type="range" min="0" max="1" step="0.1" class="w-20" />
-            <span class="text-gray-600">{{ temperature }}</span>
-          </label>
-          <button 
-            @click="clearChat" 
-            class="px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-          >
-            Clear
-          </button>
-        </div>
-      </div>
+      <ChatInput 
+        :is-loading="isLoading"
+        :current-model="currentModel"
+        :temperature="temperature"
+        @send-message="sendMessage"
+        @model-change="handleModelChange"
+        @temperature-change="handleTemperatureChange"
+        @streaming-change="handleStreamingChange"
+        @stop-request="stopCurrentRequest"
+        @clear-chat="clearChat"
+      />
     </div>
   </div>
 </template>
 
 <script>
-import { sendMessage as apiSendMessage } from './services/llm.js'
+import { sendMessage as apiSendMessage, sendMessageStream } from './services/llm.js'
+import ChatHeader from './components/ChatHeader.vue'
+import ChatMessages from './components/ChatMessages.vue'
+import ChatInput from './components/ChatInput.vue'
 
 export default {
   name: 'App',
+  components: {
+    ChatHeader,
+    ChatMessages,
+    ChatInput
+  },
   data() {
     return {
       messages: [],
-      currentMessage: '',
       isLoading: false,
+      isConnected: true,
       currentModel: 'google/gemma-3-12b',
       temperature: 0.7,
-      messageId: 0
+      useStreaming: true,
+      messageId: 0,
+      abortController: null
     }
   },
   methods: {
-    async sendMessage() {
-      if (!this.currentMessage.trim() || this.isLoading) return
+    async sendMessage(messageContent) {
+      if (!messageContent.trim() || this.isLoading) return
+
+      // Create new AbortController for this request
+      this.abortController = new AbortController()
 
       const userMessage = {
         id: this.messageId++,
         role: 'user',
-        content: this.currentMessage
+        content: messageContent,
+        timestamp: new Date().toISOString()
       }
 
       this.messages.push(userMessage)
-      const messageToSend = this.currentMessage
-      this.currentMessage = ''
       this.isLoading = true
 
+      // Create assistant message placeholder
+      const assistantMessage = {
+        id: this.messageId++,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date().toISOString(),
+        isStreaming: this.useStreaming
+      }
+
+      this.messages.push(assistantMessage)
+
       try {
-        const chatMessages = this.messages.map(msg => ({
-          role: msg.role,
-          content: msg.content
-        }))
+        const chatMessages = this.messages
+          .filter(msg => msg.content.trim() !== '')
+          .map(msg => ({
+            role: msg.role,
+            content: msg.content
+          }))
 
-        const response = await apiSendMessage(
-          chatMessages,
-          this.currentModel,
-          this.temperature
-        )
+        if (this.useStreaming) {
+          await sendMessageStream(
+            chatMessages,
+            this.currentModel,
+            this.temperature,
+            (token) => {
+              // Update the last message (assistant) with new content
+              const lastMessage = this.messages[this.messages.length - 1]
+              if (lastMessage && lastMessage.role === 'assistant') {
+                lastMessage.content += token
+              }
+            },
+            this.abortController.signal
+          )
+          
+          // Mark streaming as complete
+          const lastMessage = this.messages[this.messages.length - 1]
+          if (lastMessage && lastMessage.role === 'assistant') {
+            lastMessage.isStreaming = false
+          }
+        } else {
+          const response = await apiSendMessage(
+            chatMessages,
+            this.currentModel,
+            this.temperature,
+            this.abortController.signal
+          )
 
-        this.messages.push({
-          id: this.messageId++,
-          role: 'assistant',
-          content: response
-        })
+          // Update the placeholder message with full response
+          const lastMessage = this.messages[this.messages.length - 1]
+          if (lastMessage && lastMessage.role === 'assistant') {
+            lastMessage.content = response
+            lastMessage.isStreaming = false
+          }
+        }
+        
+        this.isConnected = true
       } catch (error) {
-        this.messages.push({
-          id: this.messageId++,
-          role: 'assistant',
-          content: `Error: ${error.message}`
-        })
+        // Update the placeholder message with error
+        const lastMessage = this.messages[this.messages.length - 1]
+        if (lastMessage && lastMessage.role === 'assistant') {
+          if (error.message === 'Request was cancelled') {
+            lastMessage.content = '🛑 Request was stopped by user'
+          } else {
+            lastMessage.content = `❌ Error: ${error.message}`
+            this.isConnected = false
+          }
+          lastMessage.isStreaming = false
+        }
       } finally {
         this.isLoading = false
-        this.$nextTick(() => {
-          this.scrollToBottom()
-        })
+        this.abortController = null
+      }
+    },
+    
+    handleModelChange(newModel) {
+      this.currentModel = newModel
+    },
+    
+    handleTemperatureChange(newTemperature) {
+      this.temperature = newTemperature
+    },
+    
+    handleStreamingChange(useStreaming) {
+      this.useStreaming = useStreaming
+    },
+    
+    stopCurrentRequest() {
+      if (this.abortController) {
+        this.abortController.abort()
       }
     },
     
     clearChat() {
       this.messages = []
       this.messageId = 0
-    },
-    
-    scrollToBottom() {
-      const container = this.$refs.messagesContainer
-      container.scrollTop = container.scrollHeight
     }
   }
 }
