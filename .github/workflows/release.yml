@@ -6,6 +6,11 @@ on:
       - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  packages: write
+  pull-requests: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -77,4 +82,4 @@ jobs:
           - 📱 Responsive full-width design
           - 🎨 Modern UI with Tailwind CSS
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN || secrets.GITHUB_TOKEN }}
