@@ -98,30 +98,57 @@ marked.setOptions({
 
 // Math rendering function
 function renderMath(text) {
+  // Store code blocks to prevent math processing inside them
+  const codeBlocks = []
+  const codeBlockPlaceholders = []
+  
+  // Extract code blocks first
+  text = text.replace(/```[\s\S]*?```/g, (match, index) => {
+    const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`
+    codeBlocks.push(match)
+    codeBlockPlaceholders.push(placeholder)
+    return placeholder
+  })
+  
+  // Extract inline code spans
+  text = text.replace(/`[^`]+`/g, (match, index) => {
+    const placeholder = `__INLINE_CODE_${codeBlocks.length}__`
+    codeBlocks.push(match)
+    codeBlockPlaceholders.push(placeholder)
+    return placeholder
+  })
+  
   // Handle block math ($$...$$)
   text = text.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
     try {
       return katex.renderToString(math, {
         displayMode: true,
         throwOnError: false,
-        output: 'html'
+        output: 'html',
+        strict: false
       })
     } catch (error) {
       return `<span class="text-red-500">Math Error: ${error.message}</span>`
     }
   })
   
-  // Handle inline math ($...$)
+  // Handle inline math ($...$) - but not inside code
   text = text.replace(/\$([^$]+)\$/g, (match, math) => {
     try {
       return katex.renderToString(math, {
         displayMode: false,
         throwOnError: false,
-        output: 'html'
+        output: 'html',
+        strict: false
       })
     } catch (error) {
       return `<span class="text-red-500">Math Error: ${error.message}</span>`
     }
+  })
+  
+  // Restore code blocks
+  codeBlockPlaceholders.forEach((placeholder, index) => {
+    text = text.replace(placeholder, codeBlocks[index])
   })
   
   return text

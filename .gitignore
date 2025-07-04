@@ -90,3 +90,4 @@ temp/
 
 # Bun
 bun.lock
+src/data/*.json

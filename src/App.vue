@@ -10,6 +10,7 @@
       <ChatMessages 
         :messages="messages"
         :is-loading="isLoading"
+        @send-starter="sendMessage"
       />
       
       <ChatInput 
@@ -54,7 +55,21 @@ export default {
   },
   methods: {
     async sendMessage(messageContent) {
-      if (!messageContent.trim() || this.isLoading) return
+      // Handle starter object or string
+      if (typeof messageContent === 'object' && messageContent.prompt) {
+        // It's a starter object with system prompt
+        const systemMessage = {
+          id: this.messageId++,
+          role: 'system',
+          content: messageContent.prompt,
+          timestamp: new Date().toISOString()
+        }
+        this.messages.push(systemMessage)
+        return
+      }
+      
+      // Handle regular string message
+      if (!messageContent || !messageContent.trim() || this.isLoading) return
 
       // Create new AbortController for this request
       this.abortController = new AbortController()

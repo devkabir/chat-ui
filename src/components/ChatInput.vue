@@ -1,7 +1,7 @@
 <template>
-  <div class="flex-shrink-0 bg-white border-t border-gray-200 p-4">
-    <div class="max-w-none mx-auto px-4">
-      <div class="flex items-end space-x-3 mb-3">
+  <div class="flex-shrink-0 p-4 bg-white border-t border-gray-200">
+    <div class="px-4 mx-auto max-w-none">
+      <div class="flex items-end mb-3 space-x-3">
         <div class="flex-1 min-w-0">
           <textarea
             ref="messageInput"
@@ -10,7 +10,7 @@
             @input="adjustTextareaHeight"
             placeholder="Type your message..."
             :disabled="isLoading"
-            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none max-h-32 disabled:bg-gray-50 disabled:text-gray-500"
+            class="w-full px-4 py-3 border border-gray-300 resize-none rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent max-h-32 disabled:bg-gray-50 disabled:text-gray-500"
             rows="1"
           />
         </div>
@@ -18,16 +18,16 @@
           v-if="!isLoading"
           @click="sendMessage" 
           :disabled="!currentMessage.trim()"
-          class="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center space-x-2"
+          class="flex items-center px-6 py-3 space-x-2 text-white transition-colors duration-200 bg-blue-500 rounded-xl hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           <span>Send</span>
         </button>
         <button 
           v-else
           @click="stopRequest" 
-          class="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200 flex items-center space-x-2"
+          class="flex items-center px-6 py-3 space-x-2 text-white transition-colors duration-200 bg-red-500 rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
         >
-          <svg class="h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
           <span>Stop</span>
@@ -36,7 +36,7 @@
       
       <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600">
         <div class="flex items-center space-x-2">
-          <label class="text-gray-700 font-medium">Model:</label>
+          <label class="font-medium text-gray-700">Model:</label>
           <select 
             v-model="selectedModel" 
             @change="$emit('model-change', selectedModel)"
@@ -55,7 +55,7 @@
         </div>
         
         <div class="flex items-center space-x-2">
-          <label class="text-gray-700 font-medium">
+          <label class="font-medium text-gray-700">
             <input 
               type="checkbox" 
               v-model="useStreaming"
@@ -67,22 +67,34 @@
         </div>
         
         <div class="flex items-center space-x-2">
-          <label class="text-gray-700 font-medium">Temperature:</label>
-          <input 
-            v-model.number="selectedTemperature" 
-            @input="$emit('temperature-change', selectedTemperature)"
-            type="range" 
-            min="0" 
-            max="1" 
-            step="0.1" 
-            class="w-20 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-          />
-          <span class="text-gray-500 min-w-[2rem]">{{ selectedTemperature }}</span>
+          <label class="font-medium text-gray-700">Temperature:</label>
+          <div class="flex items-center space-x-2">
+            <label class="text-xs text-gray-600">
+              <input 
+                type="checkbox" 
+                v-model="autoTemperature"
+                @change="toggleAutoTemperature"
+                class="mr-1"
+              />
+              Auto
+            </label>
+            <input 
+              v-model.number="selectedTemperature" 
+              @input="$emit('temperature-change', selectedTemperature)"
+              type="range" 
+              min="0" 
+              max="1" 
+              step="0.1" 
+              :disabled="autoTemperature"
+              class="w-20 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <span class="text-gray-500 min-w-[2rem]">{{ selectedTemperature }}</span>
+          </div>
         </div>
         
         <button 
           @click="$emit('clear-chat')" 
-          class="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
+          class="px-3 py-1 text-white transition-colors duration-200 bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
         >
           Clear Chat
         </button>
@@ -108,6 +120,10 @@ export default {
     temperature: {
       type: Number,
       default: 0.7
+    },
+    messages: {
+      type: Array,
+      default: () => []
     }
   },
   emits: ['send-message', 'model-change', 'temperature-change', 'clear-chat', 'streaming-change', 'stop-request'],
@@ -118,7 +134,11 @@ export default {
       selectedTemperature: this.temperature,
       useStreaming: true,
       availableModels: [],
-      modelsLoading: true
+      modelsLoading: true,
+      autoTemperature: false,
+      messageCount: 0,
+      messageHistory: [],
+      historyIndex: -1
     }
   },
   async mounted() {
@@ -136,15 +156,30 @@ export default {
     sendMessage() {
       if (!this.currentMessage.trim() || this.isLoading) return
       
+      // Add to history
+      this.addToHistory(this.currentMessage)
+      
       this.$emit('send-message', this.currentMessage)
       this.currentMessage = ''
       this.resetTextareaHeight()
+      
+      // Auto-adjust temperature based on message count
+      if (this.autoTemperature) {
+        this.messageCount++
+        this.adjustAutoTemperature()
+      }
     },
     
     handleKeydown(event) {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault()
         this.sendMessage()
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault()
+        this.navigateHistory('up')
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault()
+        this.navigateHistory('down')
       }
     },
     
@@ -189,6 +224,60 @@ export default {
         .replace(/^.*\//, '') // Remove namespace prefix
         .replace(/[-_]/g, ' ') // Replace hyphens and underscores with spaces
         .replace(/\b\w/g, l => l.toUpperCase()) // Capitalize first letter of each word
+    },
+    
+    toggleAutoTemperature() {
+      if (this.autoTemperature) {
+        this.messageCount = 0
+        this.adjustAutoTemperature()
+      }
+    },
+    
+    adjustAutoTemperature() {
+      // Auto-adjust temperature based on conversation progress
+      // Start high for creativity, decrease for more focused responses
+      const baseTemp = 0.8
+      const decayRate = 0.05
+      const minTemp = 0.3
+      
+      const newTemp = Math.max(minTemp, baseTemp - (this.messageCount * decayRate))
+      this.selectedTemperature = Math.round(newTemp * 10) / 10
+      this.$emit('temperature-change', this.selectedTemperature)
+    },
+    
+    addToHistory(message) {
+      // Add message to history, avoid duplicates
+      if (this.messageHistory[this.messageHistory.length - 1] !== message) {
+        this.messageHistory.push(message)
+        // Keep only last 50 messages
+        if (this.messageHistory.length > 50) {
+          this.messageHistory.shift()
+        }
+      }
+      this.historyIndex = -1
+    },
+    
+    navigateHistory(direction) {
+      if (this.messageHistory.length === 0) return
+      
+      if (direction === 'up') {
+        if (this.historyIndex < this.messageHistory.length - 1) {
+          this.historyIndex++
+          this.currentMessage = this.messageHistory[this.messageHistory.length - 1 - this.historyIndex]
+        }
+      } else if (direction === 'down') {
+        if (this.historyIndex > 0) {
+          this.historyIndex--
+          this.currentMessage = this.messageHistory[this.messageHistory.length - 1 - this.historyIndex]
+        } else if (this.historyIndex === 0) {
+          this.historyIndex = -1
+          this.currentMessage = ''
+        }
+      }
+      
+      this.$nextTick(() => {
+        this.adjustTextareaHeight()
+      })
     }
   }
 }
