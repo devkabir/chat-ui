@@ -86,6 +86,3 @@ temp/
 *.njsproj
 *.sln
 *.sw?
-
-# Bun
-bun.lock
