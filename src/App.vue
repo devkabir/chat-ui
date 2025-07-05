@@ -29,10 +29,10 @@
 </template>
 
 <script>
-import { sendMessage as apiSendMessage, sendMessageStream } from './services/llm.js'
-import ChatHeader from './components/ChatHeader.vue'
-import ChatMessages from './components/ChatMessages.vue'
-import ChatInput from './components/ChatInput.vue'
+import { sendMessage as apiSendMessage, sendMessageStream } from '@/services/llm.js'
+import ChatHeader from '@/components/ChatHeader.vue'
+import ChatMessages from '@/components/ChatMessages.vue'
+import ChatInput from '@/components/ChatInput.vue'
 
 export default {
   name: 'App',

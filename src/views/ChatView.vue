@@ -31,10 +31,10 @@
 
 <script setup>
 import { ref } from 'vue'
-import ChatHeader from '../components/ChatHeader.vue'
-import ChatMessages from '../components/ChatMessages.vue'
-import ChatInput from '../components/ChatInput.vue'
-import { sendMessage as sendMessageAPI, sendMessageStream } from '../services/llm.js'
+import ChatHeader from '@/components/ChatHeader.vue'
+import ChatMessages from '@/components/ChatMessages.vue'
+import ChatInput from '@/components/ChatInput.vue'
+import { sendMessage as sendMessageAPI, sendMessageStream } from '@/services/llm.js'
 
 const messages = ref([])
 const isLoading = ref(false)

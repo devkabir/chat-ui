@@ -73,7 +73,7 @@ const conversationStarters = ref([])
 const loadConversationStarters = async () => {
   try {
     // Always load from JSON file only
-    const module = await import('../data/conversationStarters.json')
+    const module = await import('@/data/conversationStarters.json')
     conversationStarters.value = module.default
   } catch (error) {
     console.error('Failed to load conversation starters:', error)

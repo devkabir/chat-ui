@@ -47,7 +47,7 @@
 
 <script setup>
 import { computed, defineProps } from 'vue'
-import { processMarkdown } from '../utils/markdown.js'
+import { processMarkdown } from '@/utils/markdown.js'
 
 const props = defineProps({
   message: {

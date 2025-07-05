@@ -4,7 +4,6 @@ node_modules/
 .pnp.js
 
 # Production builds
-/dist
 /build
 
 # Environment variables
@@ -90,4 +89,3 @@ temp/
 
 # Bun
 bun.lock
-src/data/*.json

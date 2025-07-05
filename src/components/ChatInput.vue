@@ -105,7 +105,7 @@
 
 <script setup>
 import { ref, onMounted, watch, nextTick, defineProps, defineEmits } from 'vue'
-import { fetchAvailableModels } from '../services/models.js'
+import { fetchAvailableModels } from '@/services/models.js'
 
 const props = defineProps({
   isLoading: {
