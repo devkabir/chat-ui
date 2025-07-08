@@ -5,42 +5,44 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Vue](https://img.shields.io/badge/vue-3.x-green.svg)
 
-A modern, full-featured web interface for chatting with local LLMs via OpenAI-compatible APIs. Built with Vue 3, featuring real-time streaming, rich markdown support, and a responsive design optimized for productivity.
+A modern web interface for chatting with local LLMs using OpenAI-compatible APIs. Built with Vue 3, it includes real-time streaming, rich markdown support, and a clean design that works on all devices.
 
 ## ✨ Features
 
-### 🤖 **LLM Integration**
-- **OpenAI-Compatible API** - Works with any local LLM server (Ollama, LM Studio, etc.)
-- **Dynamic Model Loading** - Automatically fetches available models from `/v1/models`
-- **Real-time Streaming** - See responses as they're generated token by token
-- **Request Control** - Stop generation at any time with the stop button
+### 🤖 **Chat with Local LLMs**
+- **OpenAI-Compatible API** - Works with Ollama, LM Studio, and other local LLM servers
+- **Model Selection** - Choose from available models with automatic loading
+- **Real-time Streaming** - See responses as they are generated
+- **Stop Button** - Cancel generation at any time
+- **Temperature Control** - Adjust creativity with manual or automatic temperature settings
 
-### 📝 **Rich Content Support**
-- **Markdown Rendering** - Full GitHub Flavored Markdown support
-- **Syntax Highlighting** - 180+ programming languages with copy-to-clipboard
-- **Math Equations** - LaTeX/KaTeX rendering for mathematical expressions
-- **Tables** - Responsive table rendering with hover effects
-- **Code Blocks** - Syntax-highlighted code with language detection
+### 📝 **Rich Message Display**
+- **Markdown Support** - Full GitHub Flavored Markdown rendering
+- **Code Highlighting** - Syntax highlighting for 180+ programming languages
+- **Copy Code Blocks** - Easy copy-to-clipboard functionality
+- **Responsive Tables** - Clean table display with hover effects
+- **Message History** - Navigate through previous messages with arrow keys
 
-### 🎨 **User Experience**
-- **Full-Width Design** - Optimized for readability and modern displays
-- **Responsive Layout** - Works seamlessly on desktop, tablet, and mobile
-- **Dark Code Themes** - GitHub Dark theme for code blocks
-- **Message Timestamps** - Track conversation timing
-- **Connection Status** - Visual indicators for API connectivity
+### 🎨 **User-Friendly Interface**
+- **Clean Design** - Modern, easy-to-use interface
+- **Works on All Devices** - Responsive design for desktop, tablet, and mobile
+- **Connection Status** - Visual indicator showing API connection status
+- **Conversation Starters** - Pre-made prompts to get started quickly
+- **Personal Prompts** - Add your own prompts via GitHub Gist
 
-### ⚡ **Performance & Modern Stack**
-- **Vue 3 Composition API** - Modern, reactive framework
-- **Vite Build System** - Lightning-fast development and optimized builds
-- **Tailwind CSS** - Utility-first styling with custom components
-- **Component Architecture** - Modular, maintainable codebase
+### ⚡ **Modern Technology**
+- **Vue 3** - Latest Vue.js framework with Composition API
+- **Vite** - Fast build tool and development server
+- **Tailwind CSS** - Utility-first CSS framework
+- **Auto-scroll** - Messages automatically scroll to show latest content
 
 ## 🚀 Quick Start
 
 ### Option 1: Download Pre-built Release
-1. Go to [Releases](https://github.com/devkabir/chat-ui/releases)
-2. Download the latest `chat-ui-vX.X.X.zip`
-3. Extract and serve the files:
+1. Visit the [Releases page](https://github.com/devkabir/chat-ui/releases)
+2. Download the latest `chat-ui-vX.X.X.zip` file
+3. Extract the files to a folder
+4. Serve the files using any web server:
    ```bash
    # Using Python
    python -m http.server 3000
@@ -51,35 +53,35 @@ A modern, full-featured web interface for chatting with local LLMs via OpenAI-co
    # Using Bun
    bun --bun serve -p 3000 .
    ```
-4. Open http://localhost:3000
+5. Open http://localhost:3000 in your browser
 
 ### Option 2: Build from Source
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/devkabir/chat-ui.git
 cd chat-ui
 
-# Install dependencies (Bun recommended)
+# Install dependencies (Bun is recommended)
 bun install  # or npm install
 
-# Development server with hot reload
+# Start development server
 bun run dev  # or npm run dev
 
-# Production build
+# Build for production
 bun run build  # or npm run build
 bun run preview  # or npm run preview
 ```
 
 ## ⚙️ Configuration
 
-### LLM Server Setup
-The application expects an OpenAI-compatible API running locally. Popular options:
+### Setting Up Your LLM Server
+You need an OpenAI-compatible API server running locally. Here are popular options:
 
-**Ollama:**
+**Ollama (Recommended):**
 ```bash
 # Install and run Ollama
 ollama serve
-ollama run llama2  # or any model
+ollama run llama2  # or any model you want
 ```
 
 **LM Studio:**
@@ -87,46 +89,47 @@ ollama run llama2  # or any model
 - Load a model and start the local server
 - Default endpoint: `http://localhost:1234`
 
-### API Endpoints Configuration
-Update the endpoints in the source files if needed:
+### API Configuration
+The app uses environment variables for API endpoints. You can set them in a `.env` file:
 
-**Chat API** (`src/services/llm.js`):
-```javascript
-const API_URL = 'http://192.168.0.138:1234/v1/chat/completions'
+```bash
+# .env file (optional)
+VITE_API_BASE_URL=http://localhost:1234
 ```
 
-**Models API** (`src/services/models.js`):
-```javascript
-const MODELS_API_URL = 'http://192.168.0.138:1234/v1/models'
-```
+If not set, it defaults to `http://localhost:1234`.
 
 ### Required API Endpoints
-Your LLM server must support:
-- `GET /v1/models` - Returns available models
-- `POST /v1/chat/completions` - Chat completions (streaming and non-streaming)
+Your LLM server must support these endpoints:
+- `GET /v1/models` - Returns list of available models
+- `POST /v1/chat/completions` - Chat completions (with streaming support)
 
 ## 📁 Project Structure
 
 ```
 chat-ui/
-├── public/                 # Static assets
+├── public/                 # Static files
 ├── src/
 │   ├── components/         # Vue components
-│   │   ├── ChatHeader.vue     # Header with model info and status
-│   │   ├── ChatMessages.vue   # Message list with auto-scroll
-│   │   ├── ChatInput.vue      # Input area with controls
-│   │   └── MessageBubble.vue  # Individual message rendering
+│   │   ├── ChatHeader.vue     # Top bar with model info and status
+│   │   ├── ChatMessages.vue   # Message list with conversation starters
+│   │   ├── ChatInput.vue      # Input area with model selection and controls
+│   │   └── MessageBubble.vue  # Individual message display
 │   ├── services/          # API services
-│   │   ├── llm.js            # LLM API integration (streaming/non-streaming)
-│   │   └── models.js         # Models API for dynamic loading
-│   ├── utils/             # Utility functions
-│   │   └── markdown.js       # Markdown processing with math/code support
-│   ├── App.vue           # Main application component
-│   ├── main.js           # Application entry point
-│   └── style.css         # Global styles and imports
-├── .github/workflows/     # GitHub Actions CI/CD
+│   │   ├── llm.js            # LLM API calls (streaming and non-streaming)
+│   │   └── models.js         # Model list API calls
+│   ├── utils/             # Helper functions
+│   │   └── markdown.js       # Markdown processing with syntax highlighting
+│   ├── views/             # Page components
+│   │   └── ChatView.vue      # Main chat page
+│   ├── data/              # Static data
+│   │   └── conversationStarters.json  # Pre-made conversation prompts
+│   ├── App.vue           # Main app component
+│   ├── main.js           # App entry point
+│   └── style.css         # Global styles
+├── .github/workflows/     # GitHub Actions for deployment
 ├── package.json          # Dependencies and scripts
-├── vite.config.js        # Vite configuration
+├── vite.config.js        # Vite build configuration
 └── tailwind.config.js    # Tailwind CSS configuration
 ```
 
@@ -137,49 +140,47 @@ chat-ui/
 - **Git**
 - **Local LLM Server** (Ollama, LM Studio, etc.)
 
-### Development Workflow
+### Development Commands
 ```bash
 # Install dependencies
 bun install
 
-# Start development server (hot reload enabled)
+# Start development server (with hot reload)
 bun run dev
 
 # Build for production
 bun run build
 
-# Preview production build locally
+# Preview production build
 bun run preview
-
-# Lint and format (if configured)
-bun run lint
 ```
 
-### Component Development
-- Use **Vue 3 Composition API** for new components
+### Code Guidelines
+- Use **Vue 3 Composition API** for components
 - Follow **single responsibility principle**
-- Include **TypeScript-style prop definitions**
-- Add **JSDoc comments** for complex functions
+- Use **proper prop definitions**
+- Add **comments** for complex logic
 
-### Styling Guidelines
-- **Tailwind CSS** for styling (utility-first)
-- **Custom CSS** only when Tailwind is insufficient
+### Styling
+- **Tailwind CSS** for all styling
 - **Responsive design** using Tailwind breakpoints
-- **Dark mode** considerations for code blocks
+- **Custom CSS** only when absolutely necessary
 
 ## 🧪 Testing
 
 ### Manual Testing Checklist
 - [ ] Connect to local LLM server
 - [ ] Send messages and receive responses
-- [ ] Test streaming vs non-streaming modes
-- [ ] Verify markdown rendering (headers, lists, links)
-- [ ] Test code block syntax highlighting
-- [ ] Verify math equation rendering
+- [ ] Test streaming and non-streaming modes
+- [ ] Check markdown rendering (headers, lists, links)
+- [ ] Test code block syntax highlighting and copy function
 - [ ] Test table rendering
-- [ ] Try stop button during generation
+- [ ] Try stop button during message generation
+- [ ] Test model selection dropdown
+- [ ] Test temperature controls (manual and auto)
+- [ ] Test conversation starters
 - [ ] Test on different screen sizes
-- [ ] Verify model dropdown loads correctly
+- [ ] Test message history navigation with arrow keys
 
 ### API Testing
 ```bash
@@ -198,10 +199,10 @@ curl -X POST http://localhost:1234/v1/chat/completions \
 ## 📦 Deployment
 
 ### Static Hosting Services
-Deploy the `dist/` folder to:
-- **Netlify**: Drag and drop or Git integration
+Deploy the `dist/` folder to any static hosting service:
+- **Netlify**: Drag and drop or connect to Git
 - **Vercel**: Import GitHub repository
-- **GitHub Pages**: Use GitHub Actions workflow
+- **GitHub Pages**: Use included GitHub Actions workflow
 - **AWS S3 + CloudFront**: Static website hosting
 
 ### Docker Deployment
@@ -218,22 +219,17 @@ docker build -t chat-ui .
 docker run -p 8080:80 chat-ui
 ```
 
-### Server Deployment
+### Simple Server Deployment
 ```bash
-# Using PM2 for Node.js
-npm install -g pm2 serve
-pm2 start serve --name chat-ui -- -s dist -p 3000
-
-# Using systemd service
-sudo cp chat-ui.service /etc/systemd/system/
-sudo systemctl enable chat-ui
-sudo systemctl start chat-ui
+# Using any static file server
+npm install -g serve
+serve -s dist -p 3000
 ```
 
 ## 🔄 Release Management
 
 ### Automated Releases
-Releases are automated via GitHub Actions:
+Releases are created automatically using GitHub Actions:
 
 ```bash
 # Create and push a new tag
@@ -243,41 +239,40 @@ git push origin v1.0.0
 
 **The workflow automatically:**
 - ✅ Builds the application with Bun
-- ✅ Creates optimized production bundle
-- ✅ Generates ZIP and tar.gz archives
-- ✅ Creates GitHub release with auto-generated notes
-- ✅ Uploads downloadable assets
+- ✅ Creates production bundle
+- ✅ Creates ZIP and tar.gz archives
+- ✅ Creates GitHub release with notes
+- ✅ Uploads downloadable files
 
-### Release Assets
+### Release Files
 Each release includes:
-- **`chat-ui-vX.X.X.zip`** - Ready-to-serve web application
-- **`chat-ui-vX.X.X.tar.gz`** - Compressed archive for Unix systems
-- **Source code** - GitHub-generated source archives
+- **`chat-ui-vX.X.X.zip`** - Ready-to-use web application
+- **`chat-ui-vX.X.X.tar.gz`** - Compressed archive
+- **Source code** - GitHub-generated source files
 
-### Version Strategy
-- **Major** (v1.0.0): Breaking changes, new major features
+### Version Numbers
+- **Major** (v1.0.0): Breaking changes or major new features
 - **Minor** (v1.1.0): New features, backwards compatible
-- **Patch** (v1.1.1): Bug fixes, small improvements
+- **Patch** (v1.1.1): Bug fixes and small improvements
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+We welcome contributions! Here's how to get started:
 
-### Quick Contributing Steps
+### How to Contribute
 1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
-3. **Commit** your changes: `git commit -m 'feat: add amazing feature'`
-4. **Push** to the branch: `git push origin feature/amazing-feature`
-5. **Open** a Pull Request
+2. **Create** a feature branch: `git checkout -b feature/new-feature`
+3. **Make** your changes
+4. **Test** your changes
+5. **Commit** your changes: `git commit -m 'Add new feature'`
+6. **Push** to the branch: `git push origin feature/new-feature`
+7. **Open** a Pull Request
 
 ### Development Setup for Contributors
 ```bash
 # Fork and clone your fork
-git clone https://github.com/devkabir/chat-ui.git
+git clone https://github.com/YOUR_USERNAME/chat-ui.git
 cd chat-ui
-
-# Add upstream remote
-git remote add upstream https://github.com/ORIGINAL_OWNER/chat-ui.git
 
 # Install dependencies
 bun install
@@ -289,32 +284,31 @@ git checkout -b feature/my-new-feature
 bun run dev
 
 # Commit and push
-git commit -m "feat: add my new feature"
+git commit -m "Add my new feature"
 git push origin feature/my-new-feature
 ```
 
 ## 🛠️ Tech Stack & Dependencies
 
 ### Core Framework
-- **[Vue 3](https://vuejs.org/)** - Progressive JavaScript framework
-- **[Vite](https://vitejs.dev/)** - Next generation frontend tooling
-- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
+- **[Vue 3](https://vuejs.org/)** - JavaScript framework
+- **[Vite](https://vitejs.dev/)** - Build tool and development server
+- **[Tailwind CSS](https://tailwindcss.com/)** - CSS framework
 
-### Rich Content Rendering
-- **[Marked](https://marked.js.org/)** - Markdown parser and compiler
-- **[Highlight.js](https://highlightjs.org/)** - Syntax highlighting for code blocks
-- **[KaTeX](https://katex.org/)** - Fast math typesetting for the web
-- **[DOMPurify](https://github.com/cure53/DOMPurify)** - XSS sanitizer for HTML
+### Content Rendering
+- **[Marked](https://marked.js.org/)** - Markdown parser
+- **[Highlight.js](https://highlightjs.org/)** - Code syntax highlighting
+- **[DOMPurify](https://github.com/cure53/DOMPurify)** - HTML sanitizer for security
 
-### Build & Development
-- **[Bun](https://bun.sh/)** - Fast all-in-one JavaScript runtime (recommended)
-- **[PostCSS](https://postcss.org/)** - CSS post-processing
-- **[Autoprefixer](https://autoprefixer.github.io/)** - CSS vendor prefixing
+### Build Tools
+- **[Bun](https://bun.sh/)** - JavaScript runtime (recommended)
+- **[PostCSS](https://postcss.org/)** - CSS processing
+- **[Autoprefixer](https://autoprefixer.github.io/)** - CSS vendor prefixes
 
-### API Integration
-- **Fetch API** - Native browser HTTP client
-- **AbortController** - Request cancellation support
-- **Server-Sent Events** - Real-time streaming support
+### API Features
+- **Fetch API** - HTTP requests
+- **AbortController** - Request cancellation
+- **Streaming** - Real-time response streaming
 
 ## 🔍 Troubleshooting
 
@@ -328,8 +322,8 @@ bun run dev
 ```
 
 **API Connection Failed:**
-- Verify your LLM server is running
-- Check the API endpoints in configuration
+- Make sure your LLM server is running
+- Check the API endpoint in your environment variables
 - Ensure CORS is enabled on your LLM server
 
 **Build Issues:**
@@ -341,21 +335,21 @@ bun run build
 ```
 
 **Styling Issues:**
-- Ensure Tailwind CSS is properly imported
+- Make sure Tailwind CSS is properly imported
 - Check for conflicting CSS rules
 - Verify build process includes CSS processing
 
 ### Performance Tips
-- Use streaming mode for better perceived performance
-- Optimize images and assets for faster loading
-- Consider enabling gzip compression on your server
-- Monitor bundle size and use code splitting if needed
+- Use streaming mode for better user experience
+- Enable gzip compression on your server
+- Monitor bundle size
+- Optimize images and assets
 
 ## 📄 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-**MIT License Summary:**
+**MIT License allows:**
 - ✅ Commercial use
 - ✅ Modification
 - ✅ Distribution
@@ -366,7 +360,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ## 🙏 Acknowledgments
 
 - **Vue.js team** for the excellent framework
-- **Vite team** for the blazing fast build tool
+- **Vite team** for the fast build tool
 - **Tailwind CSS** for the utility-first CSS framework
 - **Open source community** for the amazing libraries and tools
 
@@ -374,7 +368,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 - **GitHub Issues**: [Report bugs and request features](https://github.com/devkabir/chat-ui/issues)
 - **GitHub Discussions**: [Community discussions and Q&A](https://github.com/devkabir/chat-ui/discussions)
-- **Contributing Guide**: [How to contribute](CONTRIBUTING.md)
 
 ---
 
