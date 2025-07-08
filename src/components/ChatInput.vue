@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick, defineProps, defineEmits } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { fetchAvailableModels } from '@/services/models.js'
 
 const props = defineProps({

@@ -32,7 +32,7 @@
         class="text-sm leading-relaxed markdown-content"
         v-html="processedContent"
       ></div>
-      <span v-if="message.isStreaming" class="inline-block w-2 h-4 bg-current animate-pulse ml-1"></span>
+      <span v-if="message.isStreaming" class="inline-block w-2 h-4 ml-1 bg-current animate-pulse"></span>
       <div 
         :class="[
           'text-xs mt-2 opacity-70',
@@ -46,7 +46,7 @@
 </template>
 
 <script setup>
-import { computed, defineProps } from 'vue'
+import { computed } from 'vue'
 import { processMarkdown } from '@/utils/markdown.js'
 
 const props = defineProps({
